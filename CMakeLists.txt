@@ -26,7 +26,9 @@ pkg_check_modules(CRITERION REQUIRED criterion)
 
 add_executable(unit_tests
     tests/test_mmu.cpp
+    tests/test_arm9.cpp
     src/core/mmu.cpp
+    src/cpu/arm9/arm9.cpp
 )
 target_include_directories(unit_tests PRIVATE include ${CRITERION_INCLUDE_DIRS})
 target_link_directories(unit_tests PRIVATE ${CRITERION_LIBRARY_DIRS})
