@@ -5,6 +5,7 @@
 ** arm9
 */
 
+#include <cstring>
 #include "cpu/arm9.hpp"
 #include "core/mmu.hpp"
 #include "cpu/instruction.hpp"
@@ -18,18 +19,16 @@ void ARM9::step() {
 
     uint32_t pc = reg[15];
     bool is_thumb = (cpsr & 0x20) != 0;
-    uint32_t instruction = 0;
 
     if (is_thumb) {
-        instruction = mmu.read16(pc, true);
+        uint16_t instruction = mmu.read16(pc, true);
         reg[15] += 2;
         execute_thumb(instruction);
     } else {
-        instruction = mmu.read32(pc, true);
+        uint32_t instruction = mmu.read32(pc, true);
         reg[15] += 4;
         execute_arm(instruction);
     }
-
 }
 
 void ARM9::reset() {
@@ -39,13 +38,10 @@ void ARM9::reset() {
     cpsr = MODE_SVC | 0x80 | 0x40;
     user_r13 = 0;
     user_r14 = 0;
-    for (int i = 0; i < 5; i++) {
-        banks[i].r13 = 0;
-        banks[i].r14 = 0;
-        banks[i].spsr = 0;
-        fiq_r8_r12[i] = 0;
-        user_r8_r12[i] = 0;
-    }
+    std::memset(reg, 0, 15 * sizeof(uint32_t));
+    std::memset(banks, 0, sizeof(banks));
+    std::memset(fiq_r8_r12, 0, sizeof(fiq_r8_r12));
+    std::memset(user_r8_r12, 0, sizeof(user_r8_r12));
     reg[15] = INITIAL_PC;
 }
 
