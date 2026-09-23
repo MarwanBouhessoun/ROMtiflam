@@ -1,4 +1,5 @@
 target_sources(romtiflam_core PRIVATE
-    mmu.cpp
+    read.cpp
+    write.cpp
     system.cpp
 )
