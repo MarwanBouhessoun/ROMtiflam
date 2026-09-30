@@ -56,27 +56,32 @@ void MMU::write16(uint32_t addr, uint16_t val, bool is_arm9) {
         case 0x00: {
             if (is_arm9) {
                 offset = addr & ITCM_MASK;
-                *reinterpret_cast<uint16_t *>(&itcm[offset]) = val;
+                itcm[offset] = val & 0xFF;
+                itcm[offset + 1] = (val >> 8) & 0xFF;
             }
             break;
         }
         case 0x02: {
             if (is_arm9 && addr >= DTCM_START && addr < DTCM_END) {
                 offset = addr & DTCM_MASK;
-                *reinterpret_cast<uint16_t *>(&dtcm[offset]) = val;
+                dtcm[offset] = val & 0xFF;
+                dtcm[offset + 1] = (val >> 8) & 0xFF;
             } else {
                 offset = addr & MAIN_RAM_MASK;
-                *reinterpret_cast<uint16_t *>(&main_ram[offset]) = val;
+                main_ram[offset] = val & 0xFF;
+                main_ram[offset + 1] = (val >> 8) & 0xFF;
             }
             break;
         }
         case 0x03: {
             if (addr >= ARM7_WRAM_START) {
                 offset = addr & ARM7_WRAM_MASK;
-                *reinterpret_cast<uint16_t *>(&arm7_wram[offset]) = val;
+                arm7_wram[offset] = val & 0xFF;
+                arm7_wram[offset + 1] = (val >> 8) & 0xFF;
             } else {
                 offset = addr & SHARED_WRAM_MASK;
-                *reinterpret_cast<uint16_t *>(&shared_wram[offset]) = val;
+                shared_wram[offset] = val & 0xFF;
+                shared_wram[offset + 1] = (val >> 8) & 0xFF;
             }
             break;
         }
@@ -95,27 +100,42 @@ void MMU::write32(uint32_t addr, uint32_t val, bool is_arm9) {
         case 0x00: {
             if (is_arm9) {
                 offset = addr & ITCM_MASK;
-                *reinterpret_cast<uint32_t*>(&itcm[offset]) = val;
+                itcm[offset] = val & 0xFF;
+                itcm[offset + 1] = (val >> 8) & 0xFF;
+                itcm[offset + 2] = (val >> 16) & 0xFF;
+                itcm[offset + 3] = (val >> 24) & 0xFF;
             }
             break;
         }
         case 0x02: {
             if (is_arm9 && addr >= DTCM_START && addr < DTCM_END) {
                 offset = addr & DTCM_MASK;
-                *reinterpret_cast<uint32_t *>(&dtcm[offset]) = val;
+                dtcm[offset] = val & 0xFF;
+                dtcm[offset + 1] = (val >> 8) & 0xFF;
+                dtcm[offset + 2] = (val >> 16) & 0xFF;
+                dtcm[offset + 3] = (val >> 24) & 0xFF;
             } else {
                 offset = addr & MAIN_RAM_MASK;
-                *reinterpret_cast<uint32_t *>(&main_ram[offset]) = val;
+                main_ram[offset] = val & 0xFF;
+                main_ram[offset + 1] = (val >> 8) & 0xFF;
+                main_ram[offset + 2] = (val >> 16) & 0xFF;
+                main_ram[offset + 3] = (val >> 24) & 0xFF;
             }
             break;
         }
         case 0x03: {
             if (addr >= ARM7_WRAM_START) {
                 offset = addr & ARM7_WRAM_MASK;
-                *reinterpret_cast<uint32_t *>(&arm7_wram[offset]) = val;
+                arm7_wram[offset] = val & 0xFF;
+                arm7_wram[offset + 1] = (val >> 8) & 0xFF;
+                arm7_wram[offset + 2] = (val >> 16) & 0xFF;
+                arm7_wram[offset + 3] = (val >> 24) & 0xFF;
             } else {
                 offset = addr & SHARED_WRAM_MASK;
-                *reinterpret_cast<uint32_t *>(&shared_wram[offset]) = val;
+                shared_wram[offset] = val & 0xFF;
+                shared_wram[offset + 1] = (val >> 8) & 0xFF;
+                shared_wram[offset + 2] = (val >> 16) & 0xFF;
+                shared_wram[offset + 3] = (val >> 24) & 0xFF;
             }
             break;
         }
