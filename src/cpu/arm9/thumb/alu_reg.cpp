@@ -7,98 +7,209 @@
 
 #include "cpu/arm9.hpp"
 
+uint32_t and_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d & val_s;
+}
+
+uint32_t eor_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d ^ val_s;
+}
+
+uint32_t lsl_(uint32_t shift_val, bool& update_c, uint32_t val_d, bool& new_carry) {
+
+    if (shift_val > 0) {
+        update_c = true;
+        if (shift_val < 32) {
+            new_carry = (val_d >> (32 - shift_val)) & 1;
+            return val_d << shift_val;
+        } else {
+            new_carry = (shift_val == 32) ? (val_d & 1) : false;
+            return 0;
+        }
+    } else
+        return val_d;
+}
+
+uint32_t lsr_(uint32_t shift_val, bool& update_c, uint32_t val_d, bool& new_carry) {
+
+    if (shift_val > 0) {
+        update_c = true;
+        if (shift_val < 32) {
+            new_carry = (val_d >> (shift_val - 1)) & 1;
+            return val_d >> shift_val;
+        } else {
+            new_carry = (shift_val == 32) ? ((val_d >> 31) & 1) : false;
+            return 0;
+        }
+    } else
+        return val_d;
+}
+
+uint32_t asr_(uint32_t shift_val, bool& update_c, uint32_t val_d, bool& new_carry) {
+
+    if (shift_val > 0) {
+        update_c = true;
+        if (shift_val < 32) {
+            new_carry = (val_d >> (shift_val - 1)) & 1;
+            return static_cast<uint32_t>(static_cast<int32_t>(val_d) >> shift_val);
+        } else {
+            new_carry = (val_d >> 31) & 1;
+            return (val_d & FLAG_N) ? 0xFFFFFFFF : 0;
+        }
+    } else
+        return val_d;
+}
+
+uint32_t adc_(bool &is_logical, uint32_t val_d, uint32_t val_s, bool old_carry) {
+
+    is_logical = false;
+    return val_d + val_s + old_carry;
+}
+
+uint32_t sbc_(bool &is_logical, uint32_t val_d, uint32_t val_s, bool old_carry) {
+
+    is_logical = false;
+    return val_d - val_s - (!old_carry);
+}
+
+uint32_t ror_(uint32_t shift_val, bool &update_c, uint32_t val_d, bool &new_carry) {
+
+    if (shift_val > 0) {
+        update_c = true;
+        shift_val %= 32;
+        if (shift_val == 0) shift_val = 32;
+        new_carry = (val_d >> (shift_val - 1)) & 1;
+        return (val_d >> shift_val) | (val_d << (32 - shift_val));
+    } else
+        return val_d;
+}
+
+uint32_t tst_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d & val_s;
+}
+
+uint32_t neg_(uint32_t val_s, bool &is_logical) {
+
+    is_logical = false;
+    return -val_s;
+}
+
+uint32_t cmp_(uint32_t val_d, uint32_t val_s, bool &is_logical) {
+
+    is_logical = false;
+    return val_d - val_s;
+}
+
+uint32_t cmn_(uint32_t val_d, uint32_t val_s, bool &is_logical) {
+
+    is_logical = false;
+    return val_d + val_s;
+}
+
+uint32_t orr_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d | val_s;
+}
+
+uint32_t mul_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d * val_s;
+}
+
+uint32_t bic_(uint32_t val_d, uint32_t val_s) {
+
+    return val_d & (~val_s);
+}
+
+uint32_t mvn_(uint32_t val_s) {
+
+    return ~val_s;
+}
+
+
 void ARM9::execute_thumb_alu_reg(uint16_t instruction) {
 
-    uint32_t opcode = (instruction >> 6) & 0xF;
-    uint32_t rs = (instruction >> 3) & THUMB_REG_MASK;
+    uint32_t opcode = (instruction >> THUMB_ALU_OPCODE_SHIFT) & THUMB_ALU_OPCODE_MASK;
+    uint32_t rs = (instruction >> THUMB_RS_SHIFT) & THUMB_REG_MASK;
     uint32_t rd = instruction & THUMB_REG_MASK;
+
     uint32_t val_d = reg[rd];
     uint32_t val_s = reg[rs];
     uint32_t result = 0;
+
     bool old_carry = (cpsr & FLAG_C) != 0;
     bool update_c = false;
     bool new_carry = old_carry;
-    uint32_t shift_val = val_s & 0xFF;
+    uint32_t shift_val = val_s & THUMB_SHIFT_VAL_MASK;
+    bool is_logical = true;
 
     switch (opcode) {
         case 0x0: // AND
-            result = val_d & val_s;
+            result = and_(val_d, val_s);
             break;
         case 0x1: // EOR
-            result = val_d ^ val_s;
+            result = eor_(val_d, val_s);
             break;
         case 0x2: // LSL
-            if (shift_val == 0) result = val_d;
-            else if (shift_val < 32) { result = val_d << shift_val; new_carry = (val_d >> (32 - shift_val)) & 1; update_c = true; }
-            else if (shift_val == 32) { result = 0; new_carry = val_d & 1; update_c = true; }
-            else { result = 0; new_carry = false; update_c = true; }
+            result = lsl_(shift_val, update_c, val_d, new_carry);
             break;
         case 0x3: // LSR
-            if (shift_val == 0) result = val_d;
-            else if (shift_val < 32) { result = val_d >> shift_val; new_carry = (val_d >> (shift_val - 1)) & 1; update_c = true; }
-            else if (shift_val == 32) { result = 0; new_carry = (val_d >> 31) & 1; update_c = true; }
-            else { result = 0; new_carry = false; update_c = true; }
+            result = lsr_(shift_val, update_c, val_d, new_carry);
             break;
         case 0x4: // ASR
-            if (shift_val == 0) result = val_d;
-            else if (shift_val < 32) { result = static_cast<uint32_t>(static_cast<int32_t>(val_d) >> shift_val); new_carry = (val_d >> (shift_val - 1)) & 1; update_c = true; }
-            else { result = (val_d & FLAG_N) ? 0xFFFFFFFF : 0; new_carry = (val_d >> 31) & 1; update_c = true; }
+            result = asr_(shift_val, update_c, val_d, new_carry);
             break;
         case 0x5: // ADC
-            result = val_d + val_s + old_carry;
-            update_arithmetic_flags(val_d, val_s, result, false);
+            result = adc_(is_logical, val_d, val_s, old_carry);
+            update_arithmetic_flags(val_d, val_s, val_d + val_s + old_carry, false);
             break;
         case 0x6: // SBC
-            result = val_d - val_s - (!old_carry);
-            update_arithmetic_flags(val_d, val_s, result, true);
+            result = sbc_(is_logical, val_d, val_s, old_carry);
+            update_arithmetic_flags(val_d, val_s, val_d - val_s - (!old_carry), true);
             break;
         case 0x7: // ROR
-            if (shift_val == 0) result = val_d;
-            else {
-                shift_val %= 32;
-                if (shift_val == 0) shift_val = 32;
-                result = (val_d >> shift_val) | (val_d << (32 - shift_val));
-                new_carry = (val_d >> (shift_val - 1)) & 1;
-                update_c = true;
-            }
+            result = ror_(shift_val, update_c, val_d, new_carry);
             break;
         case 0x8: // TST
-            result = val_d & val_s;
+            result = tst_(val_d, val_s);
             break;
         case 0x9: // NEG
-            result = 0 - val_s;
-            update_arithmetic_flags(0, val_s, result, true);
+            result = neg_(val_s, is_logical);
+            update_arithmetic_flags(0, val_s, -val_s, true);
             break;
         case 0xA: // CMP
-            result = val_d - val_s;
-            update_arithmetic_flags(val_d, val_s, result, true);
+            result = cmp_(val_d, val_s, is_logical);
+            update_arithmetic_flags(val_d, val_s, val_d - val_s, true);
             break;
         case 0xB: // CMN
-            result = val_d + val_s;
-            update_arithmetic_flags(val_d, val_s, result, false);
+            result = cmn_(val_d, val_s, is_logical);
+            update_arithmetic_flags(val_d, val_s, val_d + val_s, false);
             break;
         case 0xC: // ORR
-            result = val_d | val_s;
+            result = orr_(val_d, val_s);
             break;
         case 0xD: // MUL
-            result = val_d * val_s;
+            result = mul_(val_d, val_s);
             break;
         case 0xE: // BIC
-            result = val_d & (~val_s);
+            result = bic_(val_d, val_s);
             break;
         case 0xF: // MVN
-            result = ~val_s;
+            result = mvn_(val_s);
             break;
     }
-    if (opcode != 0x8 && opcode != 0xA && opcode != 0xB) {
+
+    if (opcode != 0x8 && opcode != 0xA && opcode != 0xB)
         reg[rd] = result;
-    }
-    bool is_arithmetic = (opcode == 0x5 || opcode == 0x6 || opcode == 0x9 || opcode == 0xA || opcode == 0xB);
-    if (!is_arithmetic) {
-        if (result & FLAG_N) cpsr |= FLAG_N; else cpsr &= ~FLAG_N;
-        if (result == 0) cpsr |= FLAG_Z; else cpsr &= ~FLAG_Z;
-        if (update_c) {
-            if (new_carry) cpsr |= FLAG_C; else cpsr &= ~FLAG_C;
-        }
+    if (is_logical) {
+        uint32_t c_flag = update_c ? (new_carry ? FLAG_C : 0) : (cpsr & FLAG_C);
+
+        cpsr = (cpsr & ~(FLAG_N | FLAG_Z | FLAG_C))
+            | (result & FLAG_N)
+            | ((result == 0) ? FLAG_Z : 0)
+            | c_flag;
     }
 }

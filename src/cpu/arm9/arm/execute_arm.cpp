@@ -11,12 +11,12 @@
 
 void ARM9::execute_arm(uint32_t instruction) {
 
-    uint32_t cond = (instruction >> 28) & 0xF;
+    uint32_t cond = (instruction >> ARM_COND_SHIFT) & ARM_COND_MASK;
     uint32_t category = 0;
 
     if (cond != COND_AL && !check_condition(cond))
         return;
-    category = (instruction >> 25) & 0x7;
+    category = (instruction >> ARM_CATEGORY_SHIFT) & ARM_CATEGORY_MASK;
     switch (category) {
         case CAT_DATA_PROCESSING_1:
         case CAT_DATA_PROCESSING_2:

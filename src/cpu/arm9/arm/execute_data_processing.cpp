@@ -10,10 +10,10 @@
 
 void ARM9::execute_data_processing(uint32_t instruction) {
 
-    uint32_t opcode = (instruction >> 21) & 0xF;
+    uint32_t opcode = (instruction >> ARM_OPCODE_SHIFT) & ARM_OPCODE_MASK;
     bool set_flags = (instruction & ARM_SET_S_BIT) != 0;
-    uint32_t reg_src = (instruction >> 16) & 0xF;
-    uint32_t reg_dest = (instruction >> 12) & 0xF;
+    uint32_t reg_src = (instruction >> ARM_RN_SHIFT) & ARM_REGISTER_MASK;
+    uint32_t reg_dest = (instruction >> ARM_RD_SHIFT) & ARM_REGISTER_MASK;
     bool carry_out = (cpsr & FLAG_C) != 0;
     uint32_t op2 = decode_operand2(instruction, carry_out);
     uint32_t result = 0;

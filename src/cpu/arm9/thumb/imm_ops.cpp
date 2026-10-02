@@ -9,17 +9,15 @@
 
 void ARM9::execute_thumb_imm_ops(uint16_t instruction) {
 
-    uint32_t opcode = (instruction >> 11) & 0x3;
-    uint32_t rd = (instruction >> 8) & THUMB_REG_MASK;
-    uint32_t imm = (instruction & 0xFF);
+    uint32_t opcode = (instruction >> THUMB_OPCODE_SHIFT) & THUMB_OPCODE_MASK;
+    uint32_t rd = (instruction >> THUMB_RD_SHIFT) & THUMB_RD_MASK;
+    uint32_t imm = instruction & THUMB_IMM8_MASK;
     uint32_t val = reg[rd];
 
     switch (opcode) {
         case MOV:
             reg[rd] = imm;
-            cpsr &= ~FLAG_N;
-            if (imm == 0) cpsr |= FLAG_Z;
-            else cpsr &= ~FLAG_Z;
+            cpsr = (cpsr & ~(FLAG_N | FLAG_Z)) | ((imm == 0) ? FLAG_Z : 0);
             break;
         case CMP:
             update_arithmetic_flags(val, imm, val - imm, true);
