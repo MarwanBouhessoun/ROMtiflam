@@ -35,4 +35,5 @@ enum thumb_shift_opcode {
     THUMB_SHIFT_LSR = 0b01,
     THUMB_SHIFT_ASR = 0b10
 };
+
 #endif

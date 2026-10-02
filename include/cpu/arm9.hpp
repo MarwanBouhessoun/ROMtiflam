@@ -75,7 +75,11 @@ private:
         { 0xE000, 0x6000, &ARM9::execute_thumb_load_store_imm },
         { 0xF000, 0x8000, &ARM9::execute_thumb_load_store_imm },
         { 0xF000, 0x9000, &ARM9::execute_thumb_load_store_imm },
-        { 0xF000, 0xB000, &ARM9::execute_thumb_misc_branch }
+        { 0xF000, 0xB000, &ARM9::execute_thumb_misc_branch },
+        { 0xF000, 0xC000, &ARM9::execute_thumb_misc_branch },
+        { 0xF000, 0xD000, &ARM9::execute_thumb_misc_branch },
+        { 0xF000, 0xE000, &ARM9::execute_thumb_misc_branch },
+        { 0xF000, 0xF000, &ARM9::execute_thumb_misc_branch }
     };
 
 public:
