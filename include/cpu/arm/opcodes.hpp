@@ -16,6 +16,7 @@ enum imm_ops {
 };
 
 enum arm_data_processing_opcode {
+
     OP_AND = 0b0000,
     OP_EOR = 0b0001,
     OP_SUB = 0b0010,
@@ -32,6 +33,26 @@ enum arm_data_processing_opcode {
     OP_MOV = 0b1101,
     OP_BIC = 0b1110,
     OP_MVN = 0b1111
+};
+
+enum thumb_opcode {
+
+    THUMB_AND = 0x0,
+    THUMB_EOR = 0x1,
+    THUMB_LSL = 0x2,
+    THUMB_LSR = 0x3,
+    THUMB_ASR = 0x4,
+    THUMB_ADC = 0x5,
+    THUMB_SBC = 0x6,
+    THUMB_ROR = 0x7,
+    THUMB_TST = 0x8,
+    THUMB_NEG = 0x9,
+    THUMB_CMP = 0xA,
+    THUMB_CMN = 0xB,
+    THUMB_ORR = 0xC,
+    THUMB_MUL = 0xD,
+    THUMB_BIC = 0xE,
+    THUMB_MVN = 0xF,
 };
 
 #endif

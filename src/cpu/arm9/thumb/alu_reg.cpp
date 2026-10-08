@@ -147,62 +147,62 @@ void ARM9::execute_thumb_alu_reg(uint16_t instruction) {
     bool is_logical = true;
 
     switch (opcode) {
-        case 0x0: // AND
+        case THUMB_AND:
             result = and_(val_d, val_s);
             break;
-        case 0x1: // EOR
+        case THUMB_EOR:
             result = eor_(val_d, val_s);
             break;
-        case 0x2: // LSL
+        case THUMB_LSL:
             result = lsl_(shift_val, update_c, val_d, new_carry);
             break;
-        case 0x3: // LSR
+        case THUMB_LSR:
             result = lsr_(shift_val, update_c, val_d, new_carry);
             break;
-        case 0x4: // ASR
+        case THUMB_ASR:
             result = asr_(shift_val, update_c, val_d, new_carry);
             break;
-        case 0x5: // ADC
+        case THUMB_ADC:
             result = adc_(is_logical, val_d, val_s, old_carry);
-            update_arithmetic_flags(val_d, val_s, val_d + val_s + old_carry, false);
+            update_arithmetic_flags(val_d, val_s, result, false);
             break;
-        case 0x6: // SBC
+        case THUMB_SBC:
             result = sbc_(is_logical, val_d, val_s, old_carry);
-            update_arithmetic_flags(val_d, val_s, val_d - val_s - (!old_carry), true);
+            update_arithmetic_flags(val_d, val_s, result, true);
             break;
-        case 0x7: // ROR
+        case THUMB_ROR:
             result = ror_(shift_val, update_c, val_d, new_carry);
             break;
-        case 0x8: // TST
+        case THUMB_TST:
             result = tst_(val_d, val_s);
             break;
-        case 0x9: // NEG
+        case THUMB_NEG:
             result = neg_(val_s, is_logical);
             update_arithmetic_flags(0, val_s, -val_s, true);
             break;
-        case 0xA: // CMP
+        case THUMB_CMP:
             result = cmp_(val_d, val_s, is_logical);
             update_arithmetic_flags(val_d, val_s, val_d - val_s, true);
             break;
-        case 0xB: // CMN
+        case THUMB_CMN:
             result = cmn_(val_d, val_s, is_logical);
             update_arithmetic_flags(val_d, val_s, val_d + val_s, false);
             break;
-        case 0xC: // ORR
+        case THUMB_ORR:
             result = orr_(val_d, val_s);
             break;
-        case 0xD: // MUL
+        case THUMB_MUL:
             result = mul_(val_d, val_s);
             break;
-        case 0xE: // BIC
+        case THUMB_BIC:
             result = bic_(val_d, val_s);
             break;
-        case 0xF: // MVN
+        case THUMB_MVN:
             result = mvn_(val_s);
             break;
     }
 
-    if (opcode != 0x8 && opcode != 0xA && opcode != 0xB)
+    if (opcode != THUMB_TST && opcode != THUMB_CMP && opcode != THUMB_CMN)
         reg[rd] = result;
     if (is_logical) {
         uint32_t c_flag = update_c ? (new_carry ? FLAG_C : 0) : (cpsr & FLAG_C);
